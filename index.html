@@ -1,178 +1,132 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101827">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>RandomConnect</title>
-
   <style>
     * { box-sizing: border-box; }
-
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
       background: #101827;
       color: white;
+      font-family: Arial, sans-serif;
     }
-
     header {
-      padding: 20px;
-      text-align: center;
       background: #172337;
+      padding: 22px 12px;
+      text-align: center;
     }
-
-    h1 { margin: 0; font-size: 25px; }
-    main { padding: 18px; max-width: 520px; margin: auto; }
-
+    main {
+      max-width: 520px;
+      margin: auto;
+      padding: 18px;
+    }
     .panel {
       background: #1b2940;
+      padding: 20px;
       border-radius: 16px;
-      padding: 18px;
       margin-bottom: 16px;
     }
-
-    button, input {
+    button {
       width: 100%;
       padding: 13px;
       border: 0;
       border-radius: 9px;
+      background: #7c5cff;
+      color: white;
       font-size: 16px;
-      margin-top: 9px;
+      margin-top: 10px;
     }
-
-    button {
-      background: #35d399;
-      color: #10231d;
-      font-weight: bold;
-    }
-
-    button.secondary {
-      background: #35445b;
-      color: white;
-    }
-
-    button.danger {
-      background: #a83245;
-      color: white;
-    }
-
-    #messages {
-      height: 230px;
-      overflow-y: auto;
-      background: #101827;
-      border-radius: 10px;
-      padding: 12px;
-      overflow-wrap: anywhere;
-    }
-
-    .note {
-      font-size: 13px;
-      color: #c4cede;
-      line-height: 1.5;
-    }
-
-    #status { color: #8ef0c6; }
+    .muted { color: #bac5d6; line-height: 1.6; }
+    #status { overflow-wrap: anywhere; }
   </style>
 </head>
-
 <body>
   <header>
     <h1>RandomConnect</h1>
-    <p>Meet people. Chat safely.</p>
+    <p>Meet • Chat • Connect</p>
   </header>
 
   <main>
     <section class="panel">
-      <h2>Welcome!</h2>
-      <p id="status">Not connected</p>
-
-      <button id="find">Find a random person</button>
-      <button id="next" class="secondary">Next person</button>
-      <button id="end" class="danger">End chat</button>
-
-      <p class="note">
-        Matching will work after the secure backend is configured.
-        Do not share your phone number, address or private details.
-      </p>
+      <h2>Connection status</h2>
+      <p id="status">Connecting to Firebase...</p>
+      <button id="connectBtn">Reconnect</button>
     </section>
 
     <section class="panel">
-      <h2>Text chat</h2>
-      <div id="messages" aria-live="polite">
-        <p class="note">
-          Your messages will appear here after a secure connection
-          is established.
-        </p>
-      </div>
-
-      <form id="chatForm">
-        <input id="message"
-               maxlength="500"
-               placeholder="Write a message..."
-               autocomplete="off">
-        <button type="submit">Send message</button>
-      </form>
-    </section>
-
-    <section class="panel">
-      <h2>Video chat</h2>
-      <p class="note">
-        Video calling becomes available after both users are matched
-        and the video service is configured.
+      <h2>Start connecting</h2>
+      <p class="muted">
+        Random text and video chat are being set up.
+        Please do not share your phone number, address,
+        passwords or private information with strangers.
       </p>
-      <button id="video" class="secondary">
-        Video call — setup required
-      </button>
-      <button id="report" class="danger">Report user</button>
-      <button id="block" class="danger">Block user</button>
+      <button id="textBtn" disabled>Text Chat — Coming Soon</button>
+      <button id="videoBtn" disabled>Video Chat — Coming Soon</button>
     </section>
+
+    <p class="muted">
+      Test version. Chat features are not active yet.
+    </p>
   </main>
 
-  <script>
-    const status = document.getElementById("status");
-    const messages = document.getElementById("messages");
-    const message = document.getElementById("message");
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 
-    function showStatus(text) {
-      status.textContent = text;
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC033yiIQMg4RB0ss6eofSpG6x-e-rfSD8",
+      authDomain: "randomconnect-9a1ad.firebaseapp.com",
+      databaseURL: "https://randomconnect-9a1ad-default-rtdb.firebaseio.com",
+      projectId: "randomconnect-9a1ad",
+      storageBucket: "randomconnect-9a1ad.firebasestorage.app",
+      messagingSenderId: "998406231089",
+      appId: "1:998406231089:web:31697b8d904392a36f7110"
+    };
+
+    const statusText = document.getElementById("status");
+    const connectBtn = document.getElementById("connectBtn");
+
+    let database = null;
+
+    async function connectFirebase() {
+      connectBtn.disabled = true;
+      statusText.textContent = "Connecting...";
+
+      try {
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+
+        const auth = firebase.auth();
+        database = firebase.database();
+
+        if (!auth.currentUser) {
+          await auth.signInAnonymously();
+        }
+
+        database.ref(".info/connected").on("value", snapshot => {
+          if (snapshot.val() === true) {
+            statusText.textContent =
+              "Firebase connected. Anonymous sign-in successful.";
+          } else {
+            statusText.textContent =
+              "Signed in, but database is disconnected.";
+          }
+        });
+      } catch (error) {
+        statusText.textContent =
+          "Connection error: " + error.message;
+      } finally {
+        connectBtn.disabled = false;
+      }
     }
 
-    document.getElementById("find").onclick = () => {
-      showStatus("Backend setup required for safe matching.");
-    };
-
-    document.getElementById("next").onclick = () => {
-      showStatus("No active match to skip.");
-    };
-
-    document.getElementById("end").onclick = () => {
-      showStatus("Chat ended.");
-    };
-
-    document.getElementById("chatForm").onsubmit = event => {
-      event.preventDefault();
-      if (!message.value.trim()) return;
-
-      showStatus(
-        "Message not sent: connect the secure chat backend first."
-      );
-      message.value = "";
-    };
-
-    document.getElementById("video").onclick = () => {
-      alert("Video calls require configured video rooms and consent.");
-    };
-
-    document.getElementById("report").onclick = () => {
-      alert("Reporting must be connected to a protected moderation service.");
-    };
-
-    document.getElementById("block").onclick = () => {
-      showStatus("Blocking will work after user matching is implemented.");
-    };
+    connectBtn.addEventListener("click", connectFirebase);
+    connectFirebase();
   </script>
 </body>
 </html>
+

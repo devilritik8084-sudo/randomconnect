@@ -1,0 +1,178 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <title>RandomConnect</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #101827;
+      color: white;
+    }
+
+    header {
+      padding: 20px;
+      text-align: center;
+      background: #172337;
+    }
+
+    h1 { margin: 0; font-size: 25px; }
+    main { padding: 18px; max-width: 520px; margin: auto; }
+
+    .panel {
+      background: #1b2940;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    button, input {
+      width: 100%;
+      padding: 13px;
+      border: 0;
+      border-radius: 9px;
+      font-size: 16px;
+      margin-top: 9px;
+    }
+
+    button {
+      background: #35d399;
+      color: #10231d;
+      font-weight: bold;
+    }
+
+    button.secondary {
+      background: #35445b;
+      color: white;
+    }
+
+    button.danger {
+      background: #a83245;
+      color: white;
+    }
+
+    #messages {
+      height: 230px;
+      overflow-y: auto;
+      background: #101827;
+      border-radius: 10px;
+      padding: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .note {
+      font-size: 13px;
+      color: #c4cede;
+      line-height: 1.5;
+    }
+
+    #status { color: #8ef0c6; }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>RandomConnect</h1>
+    <p>Meet people. Chat safely.</p>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>Welcome!</h2>
+      <p id="status">Not connected</p>
+
+      <button id="find">Find a random person</button>
+      <button id="next" class="secondary">Next person</button>
+      <button id="end" class="danger">End chat</button>
+
+      <p class="note">
+        Matching will work after the secure backend is configured.
+        Do not share your phone number, address or private details.
+      </p>
+    </section>
+
+    <section class="panel">
+      <h2>Text chat</h2>
+      <div id="messages" aria-live="polite">
+        <p class="note">
+          Your messages will appear here after a secure connection
+          is established.
+        </p>
+      </div>
+
+      <form id="chatForm">
+        <input id="message"
+               maxlength="500"
+               placeholder="Write a message..."
+               autocomplete="off">
+        <button type="submit">Send message</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Video chat</h2>
+      <p class="note">
+        Video calling becomes available after both users are matched
+        and the video service is configured.
+      </p>
+      <button id="video" class="secondary">
+        Video call — setup required
+      </button>
+      <button id="report" class="danger">Report user</button>
+      <button id="block" class="danger">Block user</button>
+    </section>
+  </main>
+
+  <script>
+    const status = document.getElementById("status");
+    const messages = document.getElementById("messages");
+    const message = document.getElementById("message");
+
+    function showStatus(text) {
+      status.textContent = text;
+    }
+
+    document.getElementById("find").onclick = () => {
+      showStatus("Backend setup required for safe matching.");
+    };
+
+    document.getElementById("next").onclick = () => {
+      showStatus("No active match to skip.");
+    };
+
+    document.getElementById("end").onclick = () => {
+      showStatus("Chat ended.");
+    };
+
+    document.getElementById("chatForm").onsubmit = event => {
+      event.preventDefault();
+      if (!message.value.trim()) return;
+
+      showStatus(
+        "Message not sent: connect the secure chat backend first."
+      );
+      message.value = "";
+    };
+
+    document.getElementById("video").onclick = () => {
+      alert("Video calls require configured video rooms and consent.");
+    };
+
+    document.getElementById("report").onclick = () => {
+      alert("Reporting must be connected to a protected moderation service.");
+    };
+
+    document.getElementById("block").onclick = () => {
+      showStatus("Blocking will work after user matching is implemented.");
+    };
+  </script>
+</body>
+</html>
